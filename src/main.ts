@@ -8,16 +8,13 @@ import { bindPhysicalKeys, buildKeyboard } from "./keyboard";
 import { copyText, shareText } from "./share";
 import {
   currentStreak,
-  getContrast,
-  getTheme,
+  effectiveTheme,
   loadGame,
   loadRecord,
   recordFinish,
   saveGame,
-  setContrast,
-  setTheme,
+  toggleTheme,
   type Game,
-  type Theme,
 } from "./state";
 import { renderDist, renderFigures } from "./stats";
 
@@ -38,7 +35,6 @@ const attemptsEl = $("attempts");
 const submit = $<HTMLButtonElement>("submit");
 const helpDialog = $<HTMLDialogElement>("help");
 const statsDialog = $<HTMLDialogElement>("stats");
-const settingsDialog = $<HTMLDialogElement>("settings");
 
 const game: Game = loadGame(number);
 let clues: { rows: string[]; cols: string[] } | null = null;
@@ -252,10 +248,7 @@ function tickCountdown(): void {
 statsDialog.addEventListener("close", () => clearInterval(countdownTimer));
 
 async function share(): Promise<void> {
-  const dark =
-    document.documentElement.dataset.theme === "dark" ||
-    (!document.documentElement.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches);
-  const text = shareText(number, game.attempts, game.won, getContrast(), dark);
+  const text = shareText(number, game.attempts, game.won, effectiveTheme() === "dark");
   if (navigator.share && matchMedia("(pointer: coarse)").matches) {
     try {
       await navigator.share({ text });
@@ -274,15 +267,9 @@ function onKey(key: string): void {
   else if (/^[A-Z]$/.test(key)) board.type(key);
 }
 
-function initSettings(): void {
-  const theme = getTheme();
-  settingsDialog.querySelectorAll<HTMLInputElement>('input[name="theme"]').forEach((input) => {
-    input.checked = input.value === theme;
-    input.addEventListener("change", () => setTheme(input.value as Theme));
-  });
-  const contrast = $<HTMLInputElement>("contrast");
-  contrast.checked = getContrast();
-  contrast.addEventListener("change", () => setContrast(contrast.checked));
+function labelThemeButton(): void {
+  const next = effectiveTheme() === "dark" ? "light" : "dark";
+  $("theme-button").setAttribute("aria-label", `Switch to ${next} mode`);
 }
 
 function restore(): void {
@@ -312,9 +299,13 @@ async function start(): Promise<void> {
   submit.addEventListener("click", () => void check());
   $("help-button").addEventListener("click", () => helpDialog.showModal());
   $("stats-button").addEventListener("click", openStats);
-  $("settings-button").addEventListener("click", () => settingsDialog.showModal());
+  $("theme-button").addEventListener("click", () => {
+    toggleTheme();
+    labelThemeButton();
+  });
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", labelThemeButton);
   $("share").addEventListener("click", () => void share());
-  initSettings();
+  labelThemeButton();
   restore();
 
   try {

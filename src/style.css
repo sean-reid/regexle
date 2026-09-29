@@ -40,12 +40,6 @@
   --gap: 4px;
 }
 
-:root[data-contrast="1"] {
-  --right: #2b5fa8;
-  --near: #d97a20;
-  --on-near: #f4efe6;
-}
-
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     color-scheme: dark;
@@ -61,10 +55,6 @@
     --on-right: #f4efe6;
     --on-near: #1b1a17;
     --on-miss: #a29b8d;
-  }
-  :root:not([data-theme="light"])[data-contrast="1"] {
-    --right: #4a7fd0;
-    --near: #e38a37;
   }
 }
 
@@ -82,11 +72,6 @@
   --on-right: #f4efe6;
   --on-near: #1b1a17;
   --on-miss: #a29b8d;
-}
-
-:root[data-theme="dark"][data-contrast="1"] {
-  --right: #4a7fd0;
-  --near: #e38a37;
 }
 
 * {
@@ -167,6 +152,24 @@ button:focus-visible {
   stroke-width: 1.5;
   stroke-linecap: round;
   stroke-linejoin: round;
+}
+
+.icon-sun,
+:root[data-theme="dark"] .icon-moon {
+  display: none;
+}
+
+:root[data-theme="dark"] .icon-sun {
+  display: block;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .icon-moon {
+    display: none;
+  }
+  :root:not([data-theme="light"]) .icon-sun {
+    display: block;
+  }
 }
 
 main {
@@ -630,35 +633,6 @@ main {
 .share-done {
   font-size: 0.9rem;
   color: var(--ink-soft);
-}
-
-.options {
-  border: 0;
-  padding: 0;
-  margin: 0 0 1rem;
-  display: grid;
-  gap: 0.4rem;
-}
-
-.options legend {
-  padding: 0;
-  margin-bottom: 0.4rem;
-  color: var(--ink-soft);
-  font-size: 0.9rem;
-}
-
-.options label {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  min-height: 32px;
-}
-
-.options input {
-  accent-color: var(--accent);
-  width: 1.1rem;
-  height: 1.1rem;
-  margin: 0;
 }
 
 .visually-hidden {
