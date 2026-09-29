@@ -10,6 +10,14 @@ export interface Puzzle {
   answer: string[];
 }
 
+// The clues never settle the grid on their own: between MIN_SOLUTIONS and
+// MAX_SOLUTIONS grids fit them, at least MIN_OPEN_CELLS cells differ between
+// those grids, and no cell has more than MAX_CANDIDATES letters in play, so
+// six checks always suffice.
+const MIN_SOLUTIONS = 4;
+const MAX_SOLUTIONS = 40;
+const MIN_OPEN_CELLS = 3;
+const MAX_CANDIDATES = 4;
 const MAX_GRIDS = 20;
 const MAX_TIGHTEN = 40;
 const CANDIDATES_PER_STEP = 3;
@@ -43,6 +51,16 @@ const asClues = (clues: string[]): Clues => ({
   rows: clues.slice(0, LINE),
   cols: clues.slice(LINE),
 });
+
+// Whether a clue set stays within the ambiguity bounds.
+function fits(clues: string[]): boolean {
+  const r = solve(asClues(clues), MAX_SOLUTIONS + 1);
+  return (
+    r.solutions.length >= 1 &&
+    r.solutions.length <= MAX_SOLUTIONS &&
+    r.maxCandidates <= MAX_CANDIDATES
+  );
+}
 
 // The clue covering the most cells where a rival grid disagrees with the
 // answer is the one letting the rival through.
@@ -81,8 +99,8 @@ function uniqueStart(rng: Rng, answer: string[]): string[] | null {
   return null;
 }
 
-// Loosens one clue at a time, keeping a change only while the grid stays
-// unique. The result is the loosest clue set that still has one answer.
+// Loosens one clue at a time, keeping a change only while the clue set
+// stays within the ambiguity bounds.
 function attempt(rng: Rng): Puzzle | null {
   const answer = randomGrid(rng);
   const clues = uniqueStart(rng, answer);
@@ -99,7 +117,7 @@ function attempt(rng: Rng): Puzzle | null {
       for (let k = 0; k < CANDIDATES_PER_STEP; k++) {
         const trial = [...clues];
         trial[i] = synthesise(rng, lineText(answer, i), level - 1);
-        if (solve(asClues(trial), 2).solutions.length === 1) {
+        if (fits(trial)) {
           clues[i] = trial[i]!;
           tightness[i] = level - 1;
           break;
@@ -108,6 +126,8 @@ function attempt(rng: Rng): Puzzle | null {
     }
   }
   harden(rng, answer, clues);
+  const final = solve(asClues(clues), MAX_SOLUTIONS + 1);
+  if (final.solutions.length < MIN_SOLUTIONS || final.open < MIN_OPEN_CELLS) return null;
   return { number: 0, ...asClues(clues), answer };
 }
 
@@ -119,8 +139,8 @@ export function giveaway(clues: string[]): number {
   return clues.reduce((sum, clue) => sum + bits(clue) + PIN_PENALTY_BITS * pinned(clue), 0);
 }
 
-// Keeps swapping in looser clues while the answer stays unique and the
-// clue set gives away less, until a pass finds no improvement.
+// Keeps swapping in looser clues while the set stays within bounds and
+// gives away less, until a pass finds no improvement.
 function harden(rng: Rng, answer: string[], clues: string[]): void {
   let score = giveaway(clues);
   for (let pass = 0; pass < HARDEN_PASSES; pass++) {
@@ -134,7 +154,7 @@ function harden(rng: Rng, answer: string[], clues: string[]): void {
         trial[i] = synthesise(rng, lineText(answer, i), 0);
         const candidate = giveaway(trial);
         if (candidate >= score) continue;
-        if (solve(asClues(trial), 2).solutions.length !== 1) continue;
+        if (!fits(trial)) continue;
         clues[i] = trial[i]!;
         score = candidate;
         improved = true;

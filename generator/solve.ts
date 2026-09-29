@@ -10,6 +10,10 @@ export interface Clues {
 export interface Solved {
   solutions: string[][];
   fixed: number;
+  // Cells whose letter differs between the solutions found, and the most
+  // candidate letters any one of them has.
+  open: number;
+  maxCandidates: number;
 }
 
 const CELLS = LINE * LINE;
@@ -70,7 +74,7 @@ export function solve(clues: Clues, limit = 2): Solved {
   const all = lines(clues);
   const dom = new Int32Array(CELLS).fill(FULL);
   const solutions: string[][] = [];
-  if (!propagate(all, dom)) return { solutions, fixed: 0 };
+  if (!propagate(all, dom)) return { solutions, fixed: 0, open: 0, maxCandidates: 0 };
   let fixed = 0;
   for (let i = 0; i < CELLS; i++) if (popcount(dom[i]!) === 1) fixed++;
 
@@ -99,5 +103,18 @@ export function solve(clues: Clues, limit = 2): Solved {
     }
   };
   search(dom);
-  return { solutions, fixed };
+  return { solutions, fixed, ...spread(solutions) };
+}
+
+function spread(solutions: string[][]): { open: number; maxCandidates: number } {
+  let open = 0;
+  let maxCandidates = 0;
+  for (let r = 0; r < LINE; r++) {
+    for (let c = 0; c < LINE; c++) {
+      const letters = new Set(solutions.map((g) => g[r]![c]!));
+      if (letters.size > 1) open++;
+      maxCandidates = Math.max(maxCandidates, letters.size);
+    }
+  }
+  return { open, maxCandidates };
 }
