@@ -99,17 +99,28 @@ test("the right grid turns green and opens the statistics", async ({ page }, inf
   await expect(page.locator("#share-done")).toHaveText(/Copied|Could not copy/);
 });
 
-test("settings switch theme and contrast", async ({ page }, info) => {
+test("the header toggle flips between light and dark", async ({ page }, info) => {
+  await page.emulateMedia({ colorScheme: "light" });
   await page.goto("/");
-  await page.locator("#settings-button").click();
-  await page.locator('input[value="dark"]').check();
-  await page.locator("#contrast").check();
+  const toggle = page.locator("#theme-button");
+  await expect(toggle).toHaveAttribute("aria-label", "Switch to dark mode");
+  await toggle.click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
-  await expect(page.locator("html")).toHaveAttribute("data-contrast", "1");
-  await page.locator("#settings form button").click();
+  await expect(toggle).toHaveAttribute("aria-label", "Switch to light mode");
+  await page.reload();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   await typeGrid(page, puzzle.answer);
   await page.keyboard.press("Enter");
   await expect(page.locator(".cell.g")).toHaveCount(25, { timeout: 5000 });
   await page.keyboard.press("Escape");
-  await page.screenshot({ path: info.outputPath("dark-contrast.png"), fullPage: true });
+  await page.screenshot({ path: info.outputPath("dark.png"), fullPage: true });
+  await toggle.click();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+});
+
+test("follows the system scheme until a choice is made", async ({ page }) => {
+  await page.emulateMedia({ colorScheme: "dark" });
+  await page.goto("/");
+  await expect(page.locator("html")).not.toHaveAttribute("data-theme", /./);
+  await expect(page.locator("#theme-button")).toHaveAttribute("aria-label", "Switch to light mode");
 });

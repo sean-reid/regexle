@@ -25,12 +25,11 @@ export interface Record {
   dist: number[];
 }
 
-export type Theme = "system" | "light" | "dark";
+export type Theme = "light" | "dark";
 
 const GAME = "regexle:game";
 const RECORD = "regexle:record";
 const THEME = "regexle:theme";
-const CONTRAST = "regexle:contrast";
 
 function read<T>(key: string): T | null {
   try {
@@ -94,37 +93,27 @@ export function recordFinish(number: number, won: boolean, attempts: number): Re
 export const currentStreak = (r: Record, number: number): number =>
   r.lastPlayed >= number - 1 ? r.streak : 0;
 
-export function getTheme(): Theme {
-  const t = read<string>(THEME) ?? localStorage.getItem(THEME);
-  return t === "light" || t === "dark" ? t : "system";
-}
-
-export function setTheme(theme: Theme): void {
+function storedTheme(): Theme | null {
   try {
-    if (theme === "system") localStorage.removeItem(THEME);
-    else localStorage.setItem(THEME, theme);
+    const t = localStorage.getItem(THEME);
+    return t === "light" || t === "dark" ? t : null;
   } catch {
-    return;
-  }
-  if (theme === "system") delete document.documentElement.dataset.theme;
-  else document.documentElement.dataset.theme = theme;
-}
-
-export function getContrast(): boolean {
-  try {
-    return localStorage.getItem(CONTRAST) === "1";
-  } catch {
-    return false;
+    return null;
   }
 }
 
-export function setContrast(on: boolean): void {
+// The stored choice wins; otherwise the page follows the system setting.
+export function effectiveTheme(): Theme {
+  return storedTheme() ?? (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+}
+
+export function toggleTheme(): Theme {
+  const next: Theme = effectiveTheme() === "dark" ? "light" : "dark";
   try {
-    if (on) localStorage.setItem(CONTRAST, "1");
-    else localStorage.removeItem(CONTRAST);
+    localStorage.setItem(THEME, next);
   } catch {
-    return;
+    /* the page still switches for this visit */
   }
-  if (on) document.documentElement.dataset.contrast = "1";
-  else delete document.documentElement.dataset.contrast;
+  document.documentElement.dataset.theme = next;
+  return next;
 }
