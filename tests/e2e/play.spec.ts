@@ -28,6 +28,7 @@ test("shows ten clues around an empty grid", async ({ page }, info) => {
   await expect(page.locator("#col-clues li")).toHaveText(puzzle.cols);
   await expect(page.locator(".cell")).toHaveCount(25);
   await expect(page.locator("#focus-row code")).toHaveText(puzzle.rows[0]!);
+  await expect(page.locator("main")).not.toHaveClass(/loading/);
   if (info.project.name === "mobile") {
     const fit = await page.evaluate(() => ({
       game:

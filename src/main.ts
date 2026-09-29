@@ -312,6 +312,8 @@ async function start(): Promise<void> {
     clues = { rows: puzzle.rows, cols: puzzle.cols };
     game = loadGame(number, [...puzzle.rows, ...puzzle.cols].join(" "));
     restore();
+    renderClues();
+    $("main").classList.remove("loading");
   } catch (err) {
     showNotice(
       err instanceof ApiError && err.status === 404
@@ -322,7 +324,6 @@ async function start(): Promise<void> {
     submit.disabled = true;
     return;
   }
-  renderClues();
   if (!localStorage.getItem("regexle:seen") && game.attempts.length === 0) {
     helpDialog.showModal();
     localStorage.setItem("regexle:seen", "1");
