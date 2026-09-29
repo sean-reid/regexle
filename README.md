@@ -1,15 +1,15 @@
 # regexle
 
-A daily regex crossword. Five row clues, five column clues, one 5x5 grid of letters that satisfies all ten. You get six tries, and each try colours every cell: right letter in the right place, right letter somewhere else in that row or column, or wrong.
+A daily regex crossword at [regexle.dwainosaur.com](https://regexle.dwainosaur.com). Five row clues, five column clues, one 5x5 grid of letters that satisfies all ten. The clues narrow the grid but never settle it: a few cells stay open, and the colours after each of your six checks close them. Green is the right letter in the right cell, amber means the answer has that letter elsewhere in the same row or column, grey means it does not.
 
 ## Development
 
 ```sh
 npm install
-npm run build      # bundle the client into dist/
-npm run dev        # wrangler dev on http://localhost:8787
-npm test           # unit tests
-npm run test:e2e   # Playwright, seeds local KV then starts wrangler dev
+npm run build          # bundle the client into dist/
+npm run dev            # wrangler dev on http://localhost:8787
+npm test               # unit tests
+npm run test:e2e       # Playwright, seeds local KV then starts wrangler dev
 npm run generate 1 5   # print puzzles 1 to 5 for the seed in PUZZLE_SEED
 ```
 
@@ -19,4 +19,6 @@ One Cloudflare Worker serves the page and three endpoints: today's clues, a gues
 
 `scripts/topup.ts` fills the namespace with every missing puzzle up to 400 days ahead, generating from the `PUZZLE_SEED` secret. CI runs it after each deploy and every Monday. It only ever adds keys, so a generator change never alters a puzzle already written.
 
-Puzzles come from a seeded generator. It draws a random grid, writes a tight regex for each row and column, proves the grid is the only solution with a small constraint solver, then loosens one clue at a time for as long as the answer stays unique. Every clue is plain JavaScript regex syntax over the letters A to Z, anchored to its whole line.
+## Puzzles
+
+The generator is seeded, so a puzzle number always yields the same puzzle for a given seed. It draws a random grid, writes a tight regex for each row and column, then loosens clues one at a time while a small constraint solver keeps the set within bounds: between 4 and 40 grids fit the clues, at least three cells differ between those grids, and no cell has more than four letters in play, so six checks always suffice. Among the sets that fit, it prefers the one that gives away least, measured as the information the clues carry alone plus a penalty for every exactly placed letter. Clues use plain JavaScript regex syntax over the letters A to Z, anchored to the whole line, and stay under 14 characters.
