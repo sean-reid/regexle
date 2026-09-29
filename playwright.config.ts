@@ -15,11 +15,16 @@ export default defineConfig({
       name: "desktop",
       use: { ...devices["Desktop Chrome"], viewport: { width: 1280, height: 800 } },
     },
-    { name: "mobile", use: { ...devices["iPhone 13"], browserName: "chromium" } },
+    {
+      name: "mobile",
+      testIgnore: /api\.spec\.ts/,
+      use: { ...devices["iPhone 13"], browserName: "chromium" },
+    },
   ],
   webServer: {
-    command: "npm run build && npx wrangler dev --port 8787",
-    url: "http://localhost:8787/",
+    command:
+      "npm run build && node scripts/topup.ts --local --days 3 && npx wrangler dev --port 8787 --var SESSION_SECRET:dev",
+    url: "http://localhost:8787/api/stats/1",
     reuseExistingServer: !process.env.CI,
     timeout: 180_000,
   },

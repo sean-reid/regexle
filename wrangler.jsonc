@@ -5,5 +5,11 @@
   "compatibility_date": "2026-09-01",
   "assets": { "directory": "./dist", "binding": "ASSETS" },
   "observability": { "enabled": true },
+  "kv_namespaces": [{ "binding": "PUZZLES", "id": "da70dcc25d6740769d94c99593fae624" }],
+  "durable_objects": { "bindings": [{ "name": "RESULTS", "class_name": "PuzzleResults" }] },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["PuzzleResults"] }],
+  "ratelimits": [
+    { "name": "GUESS_RATE", "namespace_id": "1", "simple": { "limit": 60, "period": 60 } },
+  ],
   "routes": [{ "pattern": "regexle.dwainosaur.com", "custom_domain": true }],
 }
