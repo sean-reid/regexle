@@ -36,9 +36,15 @@ jobs:
       - run: npm ci
       - run: npm run build
       - run: npx wrangler deploy
-      - run: printf '%s' "$SESSION_SECRET" | npx wrangler secret put SESSION_SECRET
+      - name: push session secret
         env:
           SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
+        run: |
+          if [ -z "$SESSION_SECRET" ]; then
+            echo "::error::SESSION_SECRET is not set in Actions secrets; the Worker cannot sign game tokens"
+            exit 1
+          fi
+          printf '%s' "$SESSION_SECRET" | npx wrangler secret put SESSION_SECRET
       - name: smoke
         run: |
           curl -fsS --retry 5 --retry-all-errors --retry-delay 5 https://regexle.dwainosaur.com/ | grep -q regexle
