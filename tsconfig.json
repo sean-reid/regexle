@@ -16,7 +16,15 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": true,
-    "types": ["vite/client"]
+    "types": ["vite/client", "node"]
   },
-  "include": ["src", "shared", "tests", "vite.config.ts", "playwright.config.ts"]
+  "include": [
+    "src",
+    "shared",
+    "generator",
+    "scripts",
+    "tests",
+    "vite.config.ts",
+    "playwright.config.ts"
+  ]
 }
