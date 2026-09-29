@@ -39,6 +39,13 @@ async function readJson(request: Request): Promise<Record<string, unknown> | nul
 
 const puzzles = new Map<number, StoredPuzzle>();
 
+// Part of each day's histogram key. Bumping it starts every day's counts
+// afresh; the old objects are abandoned.
+const RESULTS_GENERATION = 2;
+
+const resultsFor = (env: Env, number: number) =>
+  env.RESULTS.get(env.RESULTS.idFromName(`${RESULTS_GENERATION}:${number}`));
+
 async function loadPuzzle(env: Env, number: number): Promise<StoredPuzzle | null> {
   const cached = puzzles.get(number);
   if (cached) return cached;
@@ -100,8 +107,7 @@ async function handleGuess(request: Request, env: Env): Promise<Response> {
   const token = await issue(env.SESSION_SECRET, { number, attempt, done, nonce });
   const response: GuessResponse = { marks, correct, attempt, done, token };
   if (done) {
-    const stub = env.RESULTS.get(env.RESULTS.idFromName(String(number)));
-    response.stats = await stub.record(nonce, correct ? attempt : 0);
+    response.stats = await resultsFor(env, number).record(nonce, correct ? attempt : 0);
     if (!correct) response.answer = puzzle.answer;
   }
   return json(response);
@@ -110,8 +116,7 @@ async function handleGuess(request: Request, env: Env): Promise<Response> {
 async function handleStats(numberText: string, env: Env): Promise<Response> {
   const number = Number(numberText);
   if (!isOpen(number, Date.now())) return error(404, "puzzle not open");
-  const stub = env.RESULTS.get(env.RESULTS.idFromName(String(number)));
-  const body: StatsResponse = { number, ...(await stub.histogram()) };
+  const body: StatsResponse = { number, ...(await resultsFor(env, number).histogram()) };
   return json(body, 200, "public, max-age=30");
 }
 

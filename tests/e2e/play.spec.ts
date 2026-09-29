@@ -7,6 +7,7 @@ const number = puzzleNumber(today)!;
 const puzzle = generatePuzzle("dev", number);
 
 async function typeGrid(page: Page, rows: string[]): Promise<void> {
+  await expect(page.locator("#row-clues li")).toHaveCount(5);
   await page.locator(".cell").first().click();
   await page.keyboard.type(rows.join(""));
 }
@@ -53,6 +54,7 @@ test("opens the how-to on a first visit", async ({ page }) => {
 
 test("explains a clue in plain words when tapped", async ({ page }) => {
   await page.goto("/");
+  await expect(page.locator("#focus-row code")).toHaveText(puzzle.rows[0]!);
   await page.locator("#focus-row").click();
   const explain = page.locator("#explain");
   await expect(explain).toBeVisible();
@@ -63,6 +65,7 @@ test("explains a clue in plain words when tapped", async ({ page }) => {
 
 test("refuses a partial grid with a notice", async ({ page }) => {
   await page.goto("/");
+  await expect(page.locator("#row-clues li")).toHaveCount(5);
   await page.locator(".cell").first().click();
   await page.keyboard.type("ABC");
   await page.keyboard.press("Enter");

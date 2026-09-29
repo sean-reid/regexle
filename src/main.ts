@@ -36,7 +36,7 @@ const submit = $<HTMLButtonElement>("submit");
 const helpDialog = $<HTMLDialogElement>("help");
 const statsDialog = $<HTMLDialogElement>("stats");
 
-const game: Game = loadGame(number);
+let game: Game = loadGame(number, "");
 let clues: { rows: string[]; cols: string[] } | null = null;
 let busy = false;
 let explained: string | null = null;
@@ -306,11 +306,12 @@ async function start(): Promise<void> {
   matchMedia("(prefers-color-scheme: dark)").addEventListener("change", labelThemeButton);
   $("share").addEventListener("click", () => void share());
   labelThemeButton();
-  restore();
 
   try {
     const puzzle = await fetchPuzzle(today);
     clues = { rows: puzzle.rows, cols: puzzle.cols };
+    game = loadGame(number, [...puzzle.rows, ...puzzle.cols].join(" "));
+    restore();
   } catch (err) {
     showNotice(
       err instanceof ApiError && err.status === 404

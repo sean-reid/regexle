@@ -7,6 +7,7 @@ export interface Attempt {
 
 export interface Game {
   number: number;
+  clues: string;
   attempts: Attempt[];
   token?: string;
   done: boolean;
@@ -50,10 +51,19 @@ function write(key: string, value: unknown): void {
 
 export const emptyDraft = (): string[] => new Array<string>(5).fill("     ");
 
-export function loadGame(number: number): Game {
+// A saved game only counts for the same puzzle number with the same clues,
+// so a regenerated puzzle starts clean.
+export function loadGame(number: number, clues: string): Game {
   const stored = read<Game>(GAME);
-  if (stored && stored.number === number && Array.isArray(stored.attempts)) return stored;
-  return { number, attempts: [], done: false, won: false, draft: emptyDraft() };
+  if (
+    stored &&
+    stored.number === number &&
+    stored.clues === clues &&
+    Array.isArray(stored.attempts)
+  ) {
+    return stored;
+  }
+  return { number, clues, attempts: [], done: false, won: false, draft: emptyDraft() };
 }
 
 export const saveGame = (game: Game): void => write(GAME, game);
