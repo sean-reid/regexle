@@ -28,4 +28,10 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
-      - run: node scripts/topup.ts --remote
+      - name: top up puzzles
+        run: |
+          if [ -z "$PUZZLE_SEED" ]; then
+            echo "::error::PUZZLE_SEED is not set in Actions secrets; no puzzles can be generated"
+            exit 1
+          fi
+          node scripts/topup.ts --remote
