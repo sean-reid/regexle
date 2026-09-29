@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>regexle</title>
     <meta
       name="description"
@@ -10,10 +10,28 @@
     />
     <meta name="color-scheme" content="light dark" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link
+      rel="preload"
+      href="/fonts/jetbrains-mono-medium.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      href="/fonts/newsreader-24pt.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
     <script>
       try {
         var t = localStorage.getItem("regexle:theme");
         if (t === "light" || t === "dark") document.documentElement.dataset.theme = t;
+        if (localStorage.getItem("regexle:contrast") === "1")
+          document.documentElement.dataset.contrast = "1";
       } catch (e) {}
     </script>
     <link rel="stylesheet" href="/src/style.css" />
@@ -21,13 +39,112 @@
   <body>
     <header class="masthead">
       <h1 class="wordmark">rege<span class="x">x</span>le</h1>
+      <nav class="tools" aria-label="Game menu">
+        <button type="button" id="help-button" aria-label="How to play">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="12" r="9" />
+            <path d="M9.4 9.6a2.6 2.6 0 1 1 3.7 2.4c-.8.4-1.1 1-1.1 1.8" />
+            <circle cx="12" cy="17" r=".5" fill="currentColor" />
+          </svg>
+        </button>
+        <button type="button" id="stats-button" aria-label="Statistics">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M5 19v-7M12 19V5M19 19v-4" />
+          </svg>
+        </button>
+        <button type="button" id="settings-button" aria-label="Settings">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4 7h9M17.5 7H20M4 17h3.5M11.5 17H20" />
+            <circle cx="15.5" cy="7" r="2" />
+            <circle cx="9.5" cy="17" r="2" />
+          </svg>
+        </button>
+      </nav>
     </header>
 
-    <main id="main"></main>
+    <main id="main">
+      <section class="board" aria-label="Puzzle">
+        <div class="board-grid">
+          <div class="corner"></div>
+          <ol class="col-clues" id="col-clues" aria-label="Column clues"></ol>
+          <ol class="row-clues" id="row-clues" aria-label="Row clues"></ol>
+          <div class="cells" id="cells" role="grid" aria-label="Letter grid"></div>
+        </div>
+      </section>
+
+      <section class="focus" aria-label="Clues for the selected cell">
+        <button type="button" class="clue-line" id="focus-row"></button>
+        <button type="button" class="clue-line" id="focus-col"></button>
+        <p class="explain" id="explain" hidden></p>
+      </section>
+
+      <p class="notice" id="notice" role="status" aria-live="polite"></p>
+
+      <ol class="attempts" id="attempts" aria-label="Your checks so far"></ol>
+
+      <div class="keyboard" id="keyboard"></div>
+      <p class="submit-row">
+        <button type="button" class="submit" id="submit">Check grid</button>
+      </p>
+    </main>
 
     <footer class="colophon">
       <p class="issue" id="issue"></p>
     </footer>
+
+    <dialog id="help" class="sheet" aria-labelledby="help-title">
+      <h2 id="help-title">How to play</h2>
+      <p>
+        Ten clues, one grid. Each clue is a regular expression, and the whole row or column it sits
+        beside has to match it. Fill all 25 cells with letters, then check the grid. You get six
+        checks.
+      </p>
+      <ul class="legend">
+        <li><span class="swatch g"></span>Right letter in the right cell.</li>
+        <li>
+          <span class="swatch y"></span>The answer has this letter elsewhere in this row or column.
+        </li>
+        <li><span class="swatch x"></span>Not in this row or column.</li>
+      </ul>
+      <p>
+        Tap any clue for a plain reading of it. Tap a small grid under the board to bring one of
+        your earlier checks back.
+      </p>
+      <p>A new puzzle arrives at midnight, your time.</p>
+      <form method="dialog"><button type="submit">Close</button></form>
+    </dialog>
+
+    <dialog id="stats" class="sheet" aria-labelledby="stats-title">
+      <h2 id="stats-title">Statistics</h2>
+      <p class="result-title" id="result-title" hidden></p>
+      <dl class="figures" id="figures"></dl>
+      <h3>Your checks to solve</h3>
+      <div class="dist" id="your-dist"></div>
+      <h3 id="global-title">Everyone today</h3>
+      <div class="dist" id="global-dist"></div>
+      <p class="dist-note" id="global-note"></p>
+      <div class="result-actions" id="result-actions" hidden>
+        <button type="button" id="share">Share</button>
+        <span class="share-done" id="share-done" role="status"></span>
+      </div>
+      <p class="next" id="next"></p>
+      <form method="dialog"><button type="submit">Close</button></form>
+    </dialog>
+
+    <dialog id="settings" class="sheet" aria-labelledby="settings-title">
+      <h2 id="settings-title">Settings</h2>
+      <fieldset class="options">
+        <legend>Theme</legend>
+        <label><input type="radio" name="theme" value="system" /> Match system</label>
+        <label><input type="radio" name="theme" value="light" /> Light</label>
+        <label><input type="radio" name="theme" value="dark" /> Dark</label>
+      </fieldset>
+      <fieldset class="options">
+        <legend>Colours</legend>
+        <label><input type="checkbox" id="contrast" /> High contrast, blue and orange</label>
+      </fieldset>
+      <form method="dialog"><button type="submit">Close</button></form>
+    </dialog>
 
     <script type="module" src="/src/main.ts"></script>
   </body>
