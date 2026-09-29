@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { generatePuzzle } from "../../generator/generate.ts";
+import { generatePuzzle, giveaway } from "../../generator/generate.ts";
 import { MAX_CLUE_LENGTH, synthesise } from "../../generator/clue.ts";
 import { seeded } from "../../generator/rng.ts";
 import { solve } from "../../generator/solve.ts";
@@ -75,6 +75,15 @@ describe("generatePuzzle", () => {
     for (const p of puzzles) {
       for (const clue of [...p.rows, ...p.cols])
         expect(clue.length).toBeLessThanOrEqual(MAX_CLUE_LENGTH);
+    }
+  });
+
+  it("gives away little on its own and never leaves loose wildcards", () => {
+    const mean =
+      puzzles.reduce((sum, p) => sum + giveaway([...p.rows, ...p.cols]), 0) / puzzles.length;
+    expect(mean).toBeLessThan(175);
+    for (const p of puzzles) {
+      for (const clue of [...p.rows, ...p.cols]) expect(clue).not.toMatch(/\.\./);
     }
   });
 

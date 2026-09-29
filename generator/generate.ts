@@ -1,5 +1,5 @@
 import { ALPHABET, LINE } from "../shared/regex/ast.ts";
-import { MAX_TIGHTNESS, synthesise } from "./clue.ts";
+import { MAX_TIGHTNESS, bits, pinned, synthesise } from "./clue.ts";
 import { int, seeded, shuffle, type Rng } from "./rng.ts";
 import { solve, type Clues } from "./solve.ts";
 
@@ -13,6 +13,8 @@ export interface Puzzle {
 const MAX_GRIDS = 20;
 const MAX_TIGHTEN = 40;
 const CANDIDATES_PER_STEP = 3;
+const HARDEN_PASSES = 6;
+const HARDEN_CANDIDATES = 12;
 
 function randomGrid(rng: Rng): string[] {
   const rows: string[] = [];
@@ -105,7 +107,42 @@ function attempt(rng: Rng): Puzzle | null {
       }
     }
   }
+  harden(rng, answer, clues);
   return { number: 0, ...asClues(clues), answer };
+}
+
+const PIN_PENALTY_BITS = 4;
+
+// How much the clues give away on their own, in bits plus a penalty for
+// every exactly placed letter. Lower is harder.
+export function giveaway(clues: string[]): number {
+  return clues.reduce((sum, clue) => sum + bits(clue) + PIN_PENALTY_BITS * pinned(clue), 0);
+}
+
+// Keeps swapping in looser clues while the answer stays unique and the
+// clue set gives away less, until a pass finds no improvement.
+function harden(rng: Rng, answer: string[], clues: string[]): void {
+  let score = giveaway(clues);
+  for (let pass = 0; pass < HARDEN_PASSES; pass++) {
+    let improved = false;
+    for (const i of shuffle(
+      rng,
+      Array.from({ length: 2 * LINE }, (_, k) => k),
+    )) {
+      for (let k = 0; k < HARDEN_CANDIDATES; k++) {
+        const trial = [...clues];
+        trial[i] = synthesise(rng, lineText(answer, i), 0);
+        const candidate = giveaway(trial);
+        if (candidate >= score) continue;
+        if (solve(asClues(trial), 2).solutions.length !== 1) continue;
+        clues[i] = trial[i]!;
+        score = candidate;
+        improved = true;
+        break;
+      }
+    }
+    if (!improved) return;
+  }
 }
 
 export function generatePuzzle(secret: string, number: number): Puzzle {

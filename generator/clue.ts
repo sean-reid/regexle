@@ -15,13 +15,16 @@ import {
   type Node,
 } from "../shared/regex/ast.ts";
 import { compile, countStrings, matches, support } from "../shared/regex/nfa.ts";
+import { parse } from "../shared/regex/parse.ts";
 import { chance, int, pick, shuffle, weighted, type Rng } from "./rng.ts";
 
 export const MAX_CLUE_LENGTH = 14;
 const MIN_OPEN_POSITIONS = 2;
 const MIN_MATCHES = 20;
 const MAX_MATCHES = 26 ** LINE / 2;
-export const MAX_TIGHTNESS = 3;
+// Tightness 0 leans on classes, wildcards, and alternations; MAX_TIGHTNESS
+// is nearly literal.
+export const MAX_TIGHTNESS = 4;
 
 function decoyLetters(rng: Rng, avoid: number, n: number): number {
   const pool = shuffle(
@@ -42,10 +45,10 @@ function rangeAround(rng: Rng, letter: string): number {
 
 function classFor(rng: Rng, letters: string, tight: number): Node {
   const own = maskOf(letters);
-  const decoys = Math.max(1, 3 - tight);
+  const decoys = Math.max(1, 4 - tight);
   return weighted(rng, [
     [() => set(own | decoyLetters(rng, own, decoys)), 3],
-    [() => set(FULL & ~decoyLetters(rng, own, 2 + int(rng, 3)), true), 1 + tight],
+    [() => set(FULL & ~decoyLetters(rng, own, 1 + int(rng, 3 + tight)), true), 1 + tight],
     [
       () => set(letters.length === 1 ? rangeAround(rng, letters) : own | decoyLetters(rng, own, 1)),
       1,
@@ -67,10 +70,10 @@ function decoyString(rng: Rng, chunk: string): string {
 const literal = (chunk: string): Node => seq(...[...chunk].map(lit));
 
 function single(rng: Rng, ch: string, tight: number): Node {
-  const pLiteral = [0.15, 0.35, 0.55, 0.75][tight] ?? 0.75;
+  const pLiteral = [0.04, 0.15, 0.35, 0.55, 0.75][tight] ?? 0.75;
   if (chance(rng, pLiteral)) return lit(ch);
   return weighted(rng, [
-    [() => set(FULL), tight === 0 ? 2 : 0.5],
+    [() => set(FULL), tight <= 1 ? 2 : 0.5],
     [() => classFor(rng, ch, tight), 4],
     [
       () =>
@@ -93,12 +96,16 @@ function chunkNode(rng: Rng, chunk: string, tight: number): Node {
   const k = chunk.length;
   const uniform = new Set(chunk).size === 1;
   return weighted(rng, [
-    [() => literal(chunk), 1 + 2 * tight],
+    [() => literal(chunk), tight === 0 ? 0.2 : 2 * tight],
     [() => rep(classFor(rng, chunk, tight), k, k), 2],
     [() => rep(classFor(rng, chunk, tight), 1, Infinity), Math.max(0.3, 2 - tight)],
     [() => rep(classFor(rng, chunk, tight), Math.max(1, k - 1), k + 1), 1],
-    [() => rep(set(FULL), k, k), tight === 0 ? 1 : 0.2],
+    [() => rep(set(FULL), k, k), tight <= 1 ? 1 : 0.2],
     [() => alt(literal(chunk), literal(decoyString(rng, chunk))), 2],
+    [
+      () => alt(literal(chunk), literal(decoyString(rng, chunk)), literal(decoyString(rng, chunk))),
+      tight === 0 ? 1 : 0,
+    ],
     [
       () =>
         uniform
@@ -141,15 +148,33 @@ function mergeDots(items: Node[]): Node[] {
   return out;
 }
 
+const flatten = (items: Node[]): Node[] =>
+  items.flatMap((item) => (item.kind === "seq" ? flatten(item.items) : [item]));
+
 function candidate(rng: Rng, line: string, tight: number): Node {
   const items: Node[] = [];
   for (const chunk of segments(rng, line)) {
-    if (chance(rng, Math.max(0, 0.15 - 0.05 * tight))) {
+    if (chance(rng, Math.max(0, 0.2 - 0.05 * tight))) {
       items.push(rep(lit(ALPHABET[int(rng, 26)]!), 0, 1));
     }
     items.push(chunkNode(rng, chunk, tight));
   }
-  return seq(...mergeDots(items));
+  return seq(...mergeDots(flatten(items)));
+}
+
+const ALL_LINES_BITS = LINE * Math.log2(26);
+
+// Bits of information a clue gives away on its own, before any crossing:
+// how far it narrows the 26^5 possible lines.
+export function bits(clue: string): number {
+  return ALL_LINES_BITS - Math.log2(countStrings(compile(parse(clue)), LINE));
+}
+
+// Positions a clue fixes to one letter on its own. Players fill these in
+// first, so they count for more than their bits.
+export function pinned(clue: string): number {
+  const open = support(compile(parse(clue)), new Array<number>(LINE).fill(FULL));
+  return open ? open.filter((m) => popcount(m) === 1).length : 0;
 }
 
 export function acceptable(text: string, node: Node, line: string): boolean {
