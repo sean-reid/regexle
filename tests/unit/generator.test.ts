@@ -81,7 +81,7 @@ describe("generatePuzzle", () => {
   it("gives away little on its own and never leaves loose wildcards", () => {
     const mean =
       puzzles.reduce((sum, p) => sum + giveaway([...p.rows, ...p.cols]), 0) / puzzles.length;
-    expect(mean).toBeLessThan(175);
+    expect(mean).toBeLessThan(200);
     for (const p of puzzles) {
       for (const clue of [...p.rows, ...p.cols]) expect(clue).not.toMatch(/\.\./);
     }

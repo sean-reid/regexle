@@ -170,8 +170,8 @@ export function bits(clue: string): number {
   return ALL_LINES_BITS - Math.log2(countStrings(compile(parse(clue)), LINE));
 }
 
-// Positions a clue fixes to one letter on its own. Players fill these in
-// first, so they count for more than their bits.
+// Positions a clue fixes to one letter on its own. An exactly placed letter
+// is the easiest foothold a puzzle can offer, so it costs more than its bits.
 export function pinned(clue: string): number {
   const open = support(compile(parse(clue)), new Array<number>(LINE).fill(FULL));
   return open ? open.filter((m) => popcount(m) === 1).length : 0;
