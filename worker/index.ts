@@ -41,7 +41,7 @@ const puzzles = new Map<number, StoredPuzzle>();
 
 // Part of each day's histogram key. Bumping it starts every day's counts
 // afresh; the old objects are abandoned.
-const RESULTS_GENERATION = 2;
+const RESULTS_GENERATION = 3;
 
 const resultsFor = (env: Env, number: number) =>
   env.RESULTS.get(env.RESULTS.idFromName(`${RESULTS_GENERATION}:${number}`));
