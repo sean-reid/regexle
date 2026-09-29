@@ -1,0 +1,95 @@
+:root {
+  color-scheme: light dark;
+  --paper: #f4efe6;
+  --ink: #1b1a17;
+  --ink-soft: #5c574d;
+  --rule: #c9c1b1;
+  --accent: #b3301b;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --serif: Georgia, "Times New Roman", serif;
+}
+
+:root[data-theme="dark"] {
+  --paper: #161513;
+  --ink: #ebe5d9;
+  --ink-soft: #a29b8d;
+  --rule: #3a3731;
+  --accent: #e0553c;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #161513;
+    --ink: #ebe5d9;
+    --ink-soft: #a29b8d;
+    --rule: #3a3731;
+    --accent: #e0553c;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--serif);
+  font-size: 18px;
+  line-height: 1.4;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+.masthead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 1rem 1.25rem 0.75rem;
+  border-bottom: 1px solid var(--rule);
+}
+
+.wordmark {
+  margin: 0;
+  font-weight: 400;
+  font-size: 1.75rem;
+  letter-spacing: -0.01em;
+}
+
+.wordmark .x {
+  color: var(--accent);
+}
+
+main {
+  flex: 1;
+  width: 100%;
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: 1.5rem 1.25rem;
+}
+
+.colophon {
+  padding: 1rem 1.25rem 1.5rem;
+  border-top: 1px solid var(--rule);
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+}
+
+.colophon p {
+  margin: 0;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}

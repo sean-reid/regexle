@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>regexle</title>
+    <meta
+      name="description"
+      content="A daily regex crossword. Ten clues, one 5x5 grid, six tries."
+    />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <script>
+      try {
+        var t = localStorage.getItem("regexle:theme");
+        if (t === "light" || t === "dark") document.documentElement.dataset.theme = t;
+      } catch (e) {}
+    </script>
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <header class="masthead">
+      <h1 class="wordmark">rege<span class="x">x</span>le</h1>
+    </header>
+
+    <main id="main"></main>
+
+    <footer class="colophon">
+      <p class="issue" id="issue"></p>
+    </footer>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
