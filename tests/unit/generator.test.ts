@@ -21,6 +21,8 @@ describe("solve", () => {
     const result = solve({ rows, cols });
     expect(result.solutions).toHaveLength(2);
     expect(result.fixed).toBe(24);
+    expect(result.open).toBe(1);
+    expect(result.maxCandidates).toBe(2);
   });
 
   it("reports nothing when a clue contradicts another", () => {
@@ -64,10 +66,14 @@ describe("generatePuzzle", () => {
     }
   });
 
-  it("has exactly one solution per puzzle", () => {
+  it("leaves a few cells open with the answer among the fitting grids", () => {
     for (const p of puzzles) {
-      const { solutions } = solve({ rows: p.rows, cols: p.cols }, 2);
-      expect(solutions, `puzzle ${p.number}`).toEqual([p.answer]);
+      const result = solve({ rows: p.rows, cols: p.cols }, 1000);
+      expect(result.solutions.length, `puzzle ${p.number}`).toBeGreaterThanOrEqual(4);
+      expect(result.solutions.length, `puzzle ${p.number}`).toBeLessThanOrEqual(40);
+      expect(result.solutions, `puzzle ${p.number}`).toContainEqual(p.answer);
+      expect(result.open, `puzzle ${p.number}`).toBeGreaterThanOrEqual(3);
+      expect(result.maxCandidates, `puzzle ${p.number}`).toBeLessThanOrEqual(4);
     }
   });
 
