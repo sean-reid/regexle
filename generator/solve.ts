@@ -23,7 +23,19 @@ interface Line {
   cells: number[];
 }
 
+const compiled = new Map<string, Line[]>();
+
 function lines(clues: Clues): Line[] {
+  const key = [...clues.rows, ...clues.cols].join("\u0000");
+  const hit = compiled.get(key);
+  if (hit) return hit;
+  const built = buildLines(clues);
+  if (compiled.size > 5000) compiled.clear();
+  compiled.set(key, built);
+  return built;
+}
+
+function buildLines(clues: Clues): Line[] {
   const out: Line[] = [];
   for (let r = 0; r < LINE; r++) {
     const cells: number[] = [];
@@ -55,6 +67,42 @@ function propagate(all: Line[], dom: Int32Array): boolean {
     }
   }
   return true;
+}
+
+export function propagateClues(clues: Clues, dom: Int32Array): boolean {
+  return propagate(lines(clues), dom);
+}
+
+// One grid consistent with the clues and the given cell domains, trying
+// letters in alphabetical or reverse order.
+export function solveFrom(clues: Clues, start: Int32Array, reverse = false): string[] | null {
+  const all = lines(clues);
+  const search = (d: Int32Array): string[] | null => {
+    let best = -1;
+    let bestSize = 27;
+    for (let i = 0; i < CELLS; i++) {
+      const size = popcount(d[i]!);
+      if (size > 1 && size < bestSize) {
+        best = i;
+        bestSize = size;
+      }
+    }
+    if (best === -1) return gridOf(d);
+    for (let k = 0; k < 26; k++) {
+      const c = reverse ? 25 - k : k;
+      const b = 1 << c;
+      if (!(d[best]! & b)) continue;
+      const next = new Int32Array(d);
+      next[best] = b;
+      if (propagate(all, next)) {
+        const found = search(next);
+        if (found) return found;
+      }
+    }
+    return null;
+  };
+  const dom = new Int32Array(start);
+  return propagate(all, dom) ? search(dom) : null;
 }
 
 function gridOf(dom: Int32Array): string[] {

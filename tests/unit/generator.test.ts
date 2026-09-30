@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { generatePuzzle, giveaway } from "../../generator/generate.ts";
+import { MAX_CHECKS, MIN_CHECKS, generatePuzzle, giveaway } from "../../generator/generate.ts";
+import { checksToSolve } from "../../generator/play.ts";
 import { MAX_CLUE_LENGTH, synthesise } from "../../generator/clue.ts";
 import { seeded } from "../../generator/rng.ts";
 import { solve } from "../../generator/solve.ts";
@@ -66,14 +67,12 @@ describe("generatePuzzle", () => {
     }
   });
 
-  it("leaves a few cells open with the answer among the fitting grids", () => {
+  it("takes a strong simulated player between MIN_CHECKS and MAX_CHECKS checks", () => {
     for (const p of puzzles) {
-      const result = solve({ rows: p.rows, cols: p.cols }, 1000);
-      expect(result.solutions.length, `puzzle ${p.number}`).toBeGreaterThanOrEqual(4);
-      expect(result.solutions.length, `puzzle ${p.number}`).toBeLessThanOrEqual(40);
-      expect(result.solutions, `puzzle ${p.number}`).toContainEqual(p.answer);
-      expect(result.open, `puzzle ${p.number}`).toBeGreaterThanOrEqual(3);
-      expect(result.maxCandidates, `puzzle ${p.number}`).toBeLessThanOrEqual(4);
+      const clues = { rows: p.rows, cols: p.cols };
+      const worst = Math.max(checksToSolve(clues, p.answer), checksToSolve(clues, p.answer, true));
+      expect(worst, `puzzle ${p.number}`).toBeGreaterThanOrEqual(MIN_CHECKS);
+      expect(worst, `puzzle ${p.number}`).toBeLessThanOrEqual(MAX_CHECKS);
     }
   });
 
