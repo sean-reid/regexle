@@ -1,23 +1,30 @@
 import { MAX_ATTEMPTS } from "../shared/api";
+import { LINE } from "../shared/regex/ast";
 import type { Attempt } from "./state";
 
-const RIGHT = "\u{1F7E9}";
-const NEAR = "\u{1F7E8}";
+// Cell colour by the check number on which it came right: check 1 green,
+// 2 yellow, 3 orange, 4 and later red.
+const PLACED = ["\u{1F7E9}", "\u{1F7E8}", "\u{1F7E7}", "\u{1F7E5}"];
 
+// One grid the shape of the puzzle. Each cell shows when it was placed, or
+// stays blank if it never was.
 export function shareText(
   number: number,
   attempts: Attempt[],
   won: boolean,
   dark: boolean,
 ): string {
-  const miss = dark ? "⬛" : "⬜";
+  const never = dark ? "\u2B1B" : "\u2B1C";
   const score = won ? String(attempts.length) : "X";
-  const last = attempts[attempts.length - 1];
-  const rows = last
-    ? last.marks.map((row) =>
-        [...row].map((m) => (m === "g" ? RIGHT : m === "y" ? NEAR : miss)).join(""),
-      )
-    : [];
+  const rows: string[] = [];
+  for (let r = 0; r < LINE; r++) {
+    let row = "";
+    for (let c = 0; c < LINE; c++) {
+      const first = attempts.findIndex((attempt) => attempt.marks[r]?.[c] === "g");
+      row += first === -1 ? never : PLACED[Math.min(first, PLACED.length - 1)]!;
+    }
+    rows.push(row);
+  }
   return [`regexle No. ${number}  ${score}/${MAX_ATTEMPTS}`, "", ...rows].join("\n");
 }
 
