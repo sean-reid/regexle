@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.2.0](https://github.com/sean-reid/regexle/compare/regexle-v0.1.0...regexle-v0.2.0) (2026-09-30)
+
+
+### Features
+
+* leave a few cells open so the checks matter ([#11](https://github.com/sean-reid/regexle/issues/11)) ([eb6640e](https://github.com/sean-reid/regexle/commit/eb6640e50b228272a8f40c4b986b712dfcf385ea))
+* measure puzzle difficulty by playing it ([#13](https://github.com/sean-reid/regexle/issues/13)) ([365d43b](https://github.com/sean-reid/regexle/commit/365d43ba4b543fdd24423653f9bb6879c1cdd6e2))
+* redesign the statistics sheet and match the how-to ([#16](https://github.com/sean-reid/regexle/issues/16)) ([c668f59](https://github.com/sean-reid/regexle/commit/c668f59048d464b0a94756159e9827e8382211d8))
+* share a grid coloured by when each cell was placed ([#15](https://github.com/sean-reid/regexle/issues/15)) ([babb09f](https://github.com/sean-reid/regexle/commit/babb09f31e545ad628135f6a6329c97167bd3287))
+
 ## 0.1.0 (2026-09-29)
 
 
