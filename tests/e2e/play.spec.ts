@@ -1,9 +1,10 @@
 import { expect, test, type Page } from "@playwright/test";
 import { generatePuzzle } from "../../generator/generate.ts";
-import { puzzleNumber } from "../../shared/day.ts";
+import { localIsoDate, puzzleNumber } from "../../shared/day.ts";
 
-const today = new Date().toISOString().slice(0, 10);
-const number = puzzleNumber(today)!;
+// The page plays the puzzle for the browser's local date, which is the
+// machine's local date under Playwright.
+const number = puzzleNumber(localIsoDate())!;
 const puzzle = generatePuzzle("dev", number);
 
 async function typeGrid(page: Page, rows: string[]): Promise<void> {
