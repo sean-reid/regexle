@@ -204,16 +204,13 @@ function finish(): void {
 function openStats(): void {
   const record = loadRecord();
   renderFigures($("figures"), record, currentStreak(record, number));
-  renderDist($("your-dist"), record.dist, game.done ? (game.won ? game.attempts.length : 0) : null);
-  const title = $("result-title");
-  title.hidden = !game.done;
-  if (game.done) {
-    title.textContent = game.won
+  $("stats-title").textContent = !game.done
+    ? "Statistics"
+    : game.won
       ? game.attempts.length === 1
         ? "Solved in one."
         : `Solved in ${game.attempts.length}.`
       : "Not this time.";
-  }
   $("result-actions").hidden = !game.done;
   $("share-done").textContent = "";
   renderGlobal(game.stats?.counts ?? null, game.stats?.total ?? 0);
@@ -222,18 +219,24 @@ function openStats(): void {
     .catch(() => undefined);
   tickCountdown();
   countdownTimer = window.setInterval(tickCountdown, 1000);
-  statsDialog.showModal();
+  open(statsDialog);
+}
+
+// Focus lands on the heading, so no button wears a focus ring when a sheet
+// opens after a keyboard check.
+function open(dialog: HTMLDialogElement): void {
+  dialog.showModal();
+  dialog.querySelector<HTMLElement>("h2")?.focus();
 }
 
 function renderGlobal(counts: number[] | null, total: number): void {
-  const note = $("global-note");
-  if (!counts || total === 0) {
-    $("global-dist").replaceChildren();
-    note.textContent = "Nobody has finished today's puzzle yet.";
-    return;
-  }
-  renderDist($("global-dist"), counts, game.done ? (game.won ? game.attempts.length : 0) : null);
-  note.textContent = `${total} finished ${total === 1 ? "game" : "games"} so far today.`;
+  const record = loadRecord();
+  const today = game.done ? (game.won ? game.attempts.length : 0) : null;
+  const have = counts !== null && total > 0;
+  renderDist($("dist"), record.dist, have ? counts : null, today);
+  $("global-note").textContent = have
+    ? `${total} finished ${total === 1 ? "game" : "games"} so far today.`
+    : "Nobody has finished today's puzzle yet.";
 }
 
 function tickCountdown(): void {
@@ -297,7 +300,7 @@ async function start(): Promise<void> {
     () => clues && toggleExplain(clues.cols[board.active % LINE] ?? ""),
   );
   submit.addEventListener("click", () => void check());
-  $("help-button").addEventListener("click", () => helpDialog.showModal());
+  $("help-button").addEventListener("click", () => open(helpDialog));
   $("stats-button").addEventListener("click", openStats);
   $("theme-button").addEventListener("click", () => {
     toggleTheme();
@@ -325,7 +328,7 @@ async function start(): Promise<void> {
     return;
   }
   if (!localStorage.getItem("regexle:seen") && game.attempts.length === 0) {
-    helpDialog.showModal();
+    open(helpDialog);
     localStorage.setItem("regexle:seen", "1");
   }
   setTimeout(

@@ -95,7 +95,14 @@
     </footer>
 
     <dialog id="help" class="sheet" aria-labelledby="help-title">
-      <h2 id="help-title">How to play</h2>
+      <header class="sheet-head">
+        <h2 id="help-title" tabindex="-1">How to play</h2>
+        <form method="dialog">
+          <button type="submit" class="close" aria-label="Close">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
+          </button>
+        </form>
+      </header>
       <p>
         Ten clues, one grid. Each clue is a regular expression, and the whole row or column it sits
         beside has to match it. Fill all 25 cells with letters, then check the grid. You get six
@@ -113,24 +120,29 @@
         your earlier checks back.
       </p>
       <p>A new puzzle arrives at midnight, your time.</p>
-      <form method="dialog"><button type="submit">Close</button></form>
     </dialog>
 
-    <dialog id="stats" class="sheet" aria-labelledby="stats-title">
-      <h2 id="stats-title">Statistics</h2>
-      <p class="result-title" id="result-title" hidden></p>
+    <dialog id="stats" class="sheet stats-sheet" aria-labelledby="stats-title">
+      <header class="sheet-head">
+        <h2 id="stats-title" tabindex="-1">Statistics</h2>
+        <form method="dialog">
+          <button type="submit" class="close" aria-label="Close">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
+          </button>
+        </form>
+      </header>
       <dl class="figures" id="figures"></dl>
-      <h3>Your checks to solve</h3>
-      <div class="dist" id="your-dist"></div>
-      <h3 id="global-title">Everyone today</h3>
-      <div class="dist" id="global-dist"></div>
+      <div class="dist-head">
+        <span class="dist-key mine">You</span>
+        <span class="dist-key all">Everyone</span>
+      </div>
+      <div class="dist" id="dist"></div>
       <p class="dist-note" id="global-note"></p>
-      <div class="result-actions" id="result-actions" hidden>
+      <footer class="sheet-foot" id="result-actions" hidden>
         <button type="button" id="share">Share</button>
         <span class="share-done" id="share-done" role="status"></span>
-      </div>
-      <p class="next" id="next"></p>
-      <form method="dialog"><button type="submit">Close</button></form>
+        <span class="next" id="next"></span>
+      </footer>
     </dialog>
 
     <script type="module" src="/src/main.ts"></script>

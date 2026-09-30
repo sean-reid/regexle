@@ -505,8 +505,8 @@ main {
   color: var(--ink);
   border: 1px solid var(--rule);
   border-radius: 2px;
-  padding: 1.25rem 1.5rem;
-  width: min(26rem, calc(100vw - 2rem));
+  padding: 1rem 1.25rem 1.25rem;
+  width: min(24rem, calc(100vw - 2rem));
   max-height: calc(100dvh - 2rem);
 }
 
@@ -514,26 +514,51 @@ main {
   background: rgb(27 26 23 / 0.45);
 }
 
-.sheet h2 {
-  margin: 0 0 0.75rem;
-  font-weight: 400;
-  font-size: 1.5rem;
+.sheet-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
 }
 
-.sheet h3 {
-  margin: 1.25rem 0 0.5rem;
+.sheet-head form {
+  margin: 0;
+}
+
+.sheet h2 {
+  margin: 0;
   font-weight: 400;
-  font-size: 1.05rem;
+  font-size: 1.5rem;
+  line-height: 1.2;
+}
+
+.sheet h2:focus {
+  outline: none;
+}
+
+.close {
+  border: 0;
+  padding: 0;
+  width: 44px;
+  height: 44px;
+  margin-right: -0.6rem;
+  display: grid;
+  place-items: center;
   color: var(--ink-soft);
+}
+
+.close svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
 }
 
 .sheet p {
   margin: 0 0 0.75rem;
-}
-
-.sheet form {
-  margin-top: 1rem;
-  text-align: right;
 }
 
 .legend {
@@ -569,17 +594,15 @@ main {
   background: var(--miss);
 }
 
-.result-title {
-  font-size: 1.25rem;
-}
-
 .figures {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   grid-template-rows: auto auto;
   grid-auto-flow: column;
   gap: 0 0.5rem;
-  margin: 0;
+  margin: 0 0 1.1rem;
+  padding-bottom: 0.9rem;
+  border-bottom: 1px solid var(--rule);
   text-align: center;
 }
 
@@ -590,56 +613,102 @@ main {
 }
 
 .figures dt {
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   color: var(--ink-soft);
+}
+
+.dist-head {
+  display: grid;
+  grid-template-columns: 1.1rem 1fr 2.2rem 2.8rem;
+  gap: 0.5rem;
+  margin-bottom: 0.4rem;
+  font-size: 0.75rem;
+  color: var(--ink-soft);
+}
+
+.dist-key {
+  text-align: right;
+}
+
+.dist-key.mine {
+  grid-column: 3;
+}
+
+.dist-key.all {
+  grid-column: 4;
 }
 
 .dist {
   display: grid;
-  gap: 4px;
+  gap: 6px;
   font-family: var(--mono);
-  font-size: 0.85rem;
+  font-size: 0.8rem;
 }
 
 .dist-row {
   display: grid;
-  grid-template-columns: 1.25rem 1fr auto;
+  grid-template-columns: 1.1rem 1fr 2.2rem 2.8rem;
   align-items: center;
   gap: 0.5rem;
 }
 
-.dist-bar {
-  display: block;
-  height: 1.1rem;
-  background: var(--miss);
+.dist-row.today .dist-label {
+  color: var(--accent);
 }
 
-.dist-row.mine .dist-bar {
+.dist-bars {
+  display: grid;
+  gap: 2px;
+}
+
+.dist-bar {
+  display: block;
+  height: 0.5rem;
+}
+
+.dist-bar.mine {
   background: var(--right);
+}
+
+.dist-bar.all {
+  background: var(--miss);
 }
 
 .dist-count {
   color: var(--ink-soft);
-  min-width: 2ch;
+  font-size: 0.75rem;
   text-align: right;
 }
 
-.dist-note,
-.next {
-  font-size: 0.9rem;
-  color: var(--ink-soft);
+.dist-count.mine {
+  color: var(--ink);
 }
 
-.result-actions {
+.dist-note {
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  margin: 0.6rem 0 0;
+}
+
+.sheet-foot {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  margin-top: 1rem;
+  margin-top: 1.1rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid var(--rule);
 }
 
 .share-done {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   color: var(--ink-soft);
+}
+
+.next {
+  margin-left: auto;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
 }
 
 .visually-hidden {
@@ -713,12 +782,6 @@ main {
   }
   .sheet h3 {
     margin-top: 0.9rem;
-  }
-  .dist {
-    gap: 3px;
-  }
-  .dist-bar {
-    height: 0.95rem;
   }
   .figures dd {
     font-size: 1.4rem;
