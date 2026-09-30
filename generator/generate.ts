@@ -1,6 +1,7 @@
 import { ALPHABET, LINE } from "../shared/regex/ast.ts";
 import { MAX_TIGHTNESS, bits, pinned, synthesise } from "./clue.ts";
 import { int, seeded, shuffle, type Rng } from "./rng.ts";
+import { checksToSolve } from "./play.ts";
 import { solve, type Clues } from "./solve.ts";
 
 export interface Puzzle {
@@ -10,14 +11,13 @@ export interface Puzzle {
   answer: string[];
 }
 
-// The clues never settle the grid on their own: between MIN_SOLUTIONS and
-// MAX_SOLUTIONS grids fit them, at least MIN_OPEN_CELLS cells differ between
-// those grids, and no cell has more than MAX_CANDIDATES letters in play, so
-// six checks always suffice.
-const MIN_SOLUTIONS = 4;
-const MAX_SOLUTIONS = 40;
-const MIN_OPEN_CELLS = 3;
-const MAX_CANDIDATES = 4;
+// Difficulty is measured by playing: a strong simulated player fills a grid
+// consistent with the clues and every colour seen so far, and repeats. A
+// clue set is accepted while that player needs at most MAX_CHECKS, and a
+// finished puzzle must need at least MIN_CHECKS, taking the worse of two
+// letter orders.
+export const MIN_CHECKS = 3;
+export const MAX_CHECKS = 3;
 const MAX_GRIDS = 20;
 const MAX_TIGHTEN = 40;
 const CANDIDATES_PER_STEP = 3;
@@ -52,15 +52,12 @@ const asClues = (clues: string[]): Clues => ({
   cols: clues.slice(LINE),
 });
 
-// Whether a clue set stays within the ambiguity bounds.
-function fits(clues: string[]): boolean {
-  const r = solve(asClues(clues), MAX_SOLUTIONS + 1);
-  return (
-    r.solutions.length >= 1 &&
-    r.solutions.length <= MAX_SOLUTIONS &&
-    r.maxCandidates <= MAX_CANDIDATES
-  );
+function checks(clues: string[], answer: string[]): number {
+  const set = asClues(clues);
+  return Math.max(checksToSolve(set, answer), checksToSolve(set, answer, true));
 }
+
+const fits = (clues: string[], answer: string[]): boolean => checks(clues, answer) <= MAX_CHECKS;
 
 // The clue covering the most cells where a rival grid disagrees with the
 // answer is the one letting the rival through.
@@ -99,8 +96,8 @@ function uniqueStart(rng: Rng, answer: string[]): string[] | null {
   return null;
 }
 
-// Loosens one clue at a time, keeping a change only while the clue set
-// stays within the ambiguity bounds.
+// Loosens one clue at a time, keeping a change only while the simulated
+// player still solves within MAX_CHECKS.
 function attempt(rng: Rng): Puzzle | null {
   const answer = randomGrid(rng);
   const clues = uniqueStart(rng, answer);
@@ -117,7 +114,7 @@ function attempt(rng: Rng): Puzzle | null {
       for (let k = 0; k < CANDIDATES_PER_STEP; k++) {
         const trial = [...clues];
         trial[i] = synthesise(rng, lineText(answer, i), level - 1);
-        if (fits(trial)) {
+        if (fits(trial, answer)) {
           clues[i] = trial[i]!;
           tightness[i] = level - 1;
           break;
@@ -126,9 +123,7 @@ function attempt(rng: Rng): Puzzle | null {
     }
   }
   harden(rng, answer, clues);
-  const final = solve(asClues(clues), MAX_SOLUTIONS + 1);
-  if (final.solutions.length < MIN_SOLUTIONS || final.open < MIN_OPEN_CELLS) return null;
-  return { number: 0, ...asClues(clues), answer };
+  return checks(clues, answer) >= MIN_CHECKS ? { number: 0, ...asClues(clues), answer } : null;
 }
 
 const PIN_PENALTY_BITS = 4;
@@ -139,8 +134,9 @@ export function giveaway(clues: string[]): number {
   return clues.reduce((sum, clue) => sum + bits(clue) + PIN_PENALTY_BITS * pinned(clue), 0);
 }
 
-// Keeps swapping in looser clues while the set stays within bounds and
-// gives away less, until a pass finds no improvement.
+// Keeps swapping in looser clues while the simulated player still solves
+// within MAX_CHECKS and the set gives away less, until a pass finds no
+// improvement.
 function harden(rng: Rng, answer: string[], clues: string[]): void {
   let score = giveaway(clues);
   for (let pass = 0; pass < HARDEN_PASSES; pass++) {
@@ -154,7 +150,7 @@ function harden(rng: Rng, answer: string[], clues: string[]): void {
         trial[i] = synthesise(rng, lineText(answer, i), 0);
         const candidate = giveaway(trial);
         if (candidate >= score) continue;
-        if (!fits(trial)) continue;
+        if (!fits(trial, answer)) continue;
         clues[i] = trial[i]!;
         score = candidate;
         improved = true;
