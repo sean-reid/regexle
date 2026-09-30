@@ -50,6 +50,7 @@ test("opens the how-to on a first visit", async ({ page }) => {
   await page.evaluate(() => localStorage.removeItem("regexle:seen"));
   await page.reload();
   await expect(page.locator("#help")).toBeVisible();
+  await page.screenshot({ path: test.info().outputPath("help.png"), fullPage: true });
   await page.locator("#help form button").click();
   await expect(page.locator("#help")).toBeHidden();
 });
@@ -95,7 +96,7 @@ test("the right grid turns green and opens the statistics", async ({ page }, inf
   await expect(page.locator(".cell.g")).toHaveCount(25, { timeout: 5000 });
   const stats = page.locator("#stats");
   await expect(stats).toBeVisible({ timeout: 5000 });
-  await expect(page.locator("#result-title")).toHaveText("Solved in one.");
+  await expect(page.locator("#stats-title")).toHaveText("Solved in one.");
   await expect(page.locator("#figures")).toContainText("100%");
   await expect(page.locator("#global-note")).toContainText(/finished game/);
   await expect(page.locator("#next")).toHaveText(/^Next puzzle in \d\d:\d\d:\d\d$/);
