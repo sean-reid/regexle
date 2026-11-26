@@ -24,7 +24,7 @@ export default defineConfig({
   webServer: {
     command:
       "npm run build && node scripts/topup.ts --local --days 3 && npx wrangler dev --port 8787 --var SESSION_SECRET:dev",
-    url: "http://localhost:8787/api/stats/1",
+    url: "http://localhost:8787/",
     reuseExistingServer: !process.env.CI,
     timeout: 180_000,
   },
