@@ -1,6 +1,6 @@
 # regexle
 
-A daily regex crossword at [regexle.dwainosaur.com](https://regexle.dwainosaur.com). Five row clues, five column clues, one 5x5 grid of letters that satisfies all ten. The clues narrow the grid but never settle it: a few cells stay open, and the colours after each of your six checks close them. Green is the right letter in the right cell, amber means the answer has that letter elsewhere in the same row or column, grey means it does not.
+A daily regex crossword at [regexle.seanre.id](https://regexle.seanre.id). Five row clues, five column clues, one 5x5 grid of letters that satisfies all ten. The clues narrow the grid but never settle it: a few cells stay open, and the colours after each of your six checks close them. Green is the right letter in the right cell, amber means the answer has that letter elsewhere in the same row or column, grey means it does not.
 
 ## Development
 
