@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/sean-reid/regexle/compare/regexle-v0.2.0...regexle-v0.3.0) (2026-11-26)
+
+
+### Features
+
+* serve the site from regexle.seanre.id ([#24](https://github.com/sean-reid/regexle/issues/24)) ([fc98aa6](https://github.com/sean-reid/regexle/commit/fc98aa66e45ea4752b009fdc645c766fa70d048d))
+
 ## [0.2.0](https://github.com/sean-reid/regexle/compare/regexle-v0.1.0...regexle-v0.2.0) (2026-09-30)
 
 
